@@ -119,7 +119,7 @@ func downloadFile(path string) error {
 	}
 
 	// Write manifests
-	manifestPath := filepath.Join(workDir, model.GetName()+"_"+model.GetVersion()+".yml")
+	manifestPath := filepath.Join(workDir, dlframework.CleanString(model.GetName()+"_"+model.GetVersion())+".yml")
 	if err := ioutil.WriteFile(manifestPath, bts, 0644); err != nil {
 		return fmt.Errorf("failed to write manifests to %v", manifestPath)
 	}
