@@ -109,6 +109,14 @@ func downloadFile(path string) error {
 				return fmt.Errorf("failed to download model from %v", baseURL+model.GetModel().GetGraphPath())
 			}
 		}
+		if model.GetModel().GetWeightsPath() != "" {
+			weightsPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetWeightsPath()))
+	        weightsChecksum := model.GetModel().GetWeightsChecksum()
+			_, _, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetWeightsPath(), weightsPath, downloadmanager.MD5Sum(weightsChecksum))
+			if err != nil {
+				return fmt.Errorf("failed to download weight from %v", baseURL+model.GetModel().GetWeightsPath())
+			}
+		}
 		if model.GetModel().GetFeaturesPath() != "" {
 			featuresPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetFeaturesPath()))
 			_, _, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetFeaturesPath(), featuresPath, downloadmanager.MD5Sum(model.GetModel().GetFeaturesChecksum()))
