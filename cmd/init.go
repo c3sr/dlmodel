@@ -14,9 +14,4 @@ func init() {
 	config.AfterInit(func() {
 		log = logger.New().WithField("pkg", "dlmodel")
 	})
-	config.Init(
-		config.AppName("carml"),
-		config.DebugMode(true),
-		config.VerboseMode(true),
-	)
 }
