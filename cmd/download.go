@@ -28,6 +28,10 @@ var downloadCmd = &cobra.Command{
 	},
 }
 
+func DownloadPattern(pattern string) error {
+	return downloadPattern(pattern)
+}
+
 func downloadPattern(pattern string) error {
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
@@ -111,7 +115,7 @@ func downloadFile(path string) error {
 		}
 		if model.GetModel().GetWeightsPath() != "" {
 			weightsPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetWeightsPath()))
-	        weightsChecksum := model.GetModel().GetWeightsChecksum()
+			weightsChecksum := model.GetModel().GetWeightsChecksum()
 			_, _, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetWeightsPath(), weightsPath, downloadmanager.MD5Sum(weightsChecksum))
 			if err != nil {
 				return fmt.Errorf("failed to download weight from %v", baseURL+model.GetModel().GetWeightsPath())

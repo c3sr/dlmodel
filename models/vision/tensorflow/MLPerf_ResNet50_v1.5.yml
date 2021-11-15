@@ -75,7 +75,7 @@ preprocess: |
       img = img.transpose([2, 0, 1])
     return img
   def preprocess(ctx, data):
-    img = cv2.imread(data)
+    img = cv2.imread(dataset[int(data)])
     return pre_process_vgg(img, [224, 224, 3], False)
 postprocess: |
   def postprocess(ctx, data):
