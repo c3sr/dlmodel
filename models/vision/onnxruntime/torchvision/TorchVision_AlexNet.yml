@@ -14,7 +14,7 @@ references: # references to papers / websites / etc.. describing the model
 # license of the model
 license: BSD 3-Clause License
 # inputs to the model
-modality: image_classification
+modality: general
 inputs:
     - type: image
       # description of the first input
@@ -54,9 +54,10 @@ preprocess: |
     img = Image.open(dataset[int(data)]).convert('RGB')
     return preprocessor(img).numpy()
 postprocess: |
-  from scipy.special import softmax
+  import json
+  import numpy as np
   def postprocess(ctx, data):
-    return softmax(data[0], axis = 1).tolist()
+    return [json.dumps([x.item()]) for x in np.argmax(data[0], axis = 1)]
 attributes: # extra network attributes
     kind: CNN # the kind of neural network (CNN, RNN, ...)
     training_dataset: ImageNet # dataset used to for training
