@@ -1,0 +1,58 @@
+name: BERT # name of your model
+framework:
+  name: PyTorch # framework for the model
+  version: 1.8.1 # framework version constraint
+version: 1.0 # version information in semantic version format
+description: >
+  MLPerf_BERT.
+references:
+  - https://github.com/mlcommons/inference/tree/master/language/bert
+  - https://zenodo.org/record/3733896
+# license of the model
+license: Apache License, Version 2.0 # license of the model
+# inputs to the model
+modality: general
+inputs:
+    - type: general
+      description: input id
+      parameters: # type parameters
+          element_type: int64
+    - type: general
+      description: input mask
+      parameters: # type parameters
+          element_type: int64
+    - type: general
+      description: segment id
+      parameters: # type parameters
+          element_type: int64
+outputs:
+    - type: general
+      description: start position to the answer
+      parameters:
+        element_type: int64
+    - type: general
+      description: end position to the answe
+      parameters:
+        element_type: int64
+model: # specifies model graph and weights resources
+    is_archive:
+        false # if set, then the base_url is a url to an archive
+        # the graph_path and weights_path then denote the
+        # file names of the graph and weights within the archive
+    graph_path: https://s3.amazonaws.com/store.carml.org/models/pytorch/bert_gpu.pt
+    graph_checksum: e75cdc57d736badc252f639602878e9c
+preprocess: |
+  def preprocess(ctx, data):
+    import numpy as np
+    cur = eval_features[int(data)]
+    return np.array(cur.input_ids, dtype = np.int64), np.array(cur.input_mask, dtype = np.int64), np.array(cur.segment_ids, dtype = np.int64)
+postprocess: |
+  def postprocess(ctx, data):
+    import numpy as np
+    import json
+    res = np.stack([data[0], data[1]], axis = -1).squeeze(0).tolist()
+    return [json.dumps(res)]
+attributes: # extra network attributes
+    kind: Transformer # the kind of neural network (CNN, RNN, ...)
+    manifest_author: Yen-Hsiang Chang
+
