@@ -1,4 +1,4 @@
-name: MLPerf_ResNet50_v1.5 # name of your model
+name: ResNet50_v1.5 # name of your model
 framework:
   name: TensorFlow
   version: 1.14.0
@@ -12,7 +12,7 @@ references:
 # license of the model
 license: Apache License, Version 2.0 # license of the model
 # inputs to the mddodel
-modality: image_classification
+modality: general
 inputs:
     - type: image
       # description of the first input
@@ -78,8 +78,10 @@ preprocess: |
     img = cv2.imread(dataset[int(data)])
     return pre_process_vgg(img, [224, 224, 3], False)
 postprocess: |
+  import json
+  import numpy as np
   def postprocess(ctx, data):
-    return data[0][1:].tolist()
+    return [json.dumps([x.item()]) for x in np.argmax(data[0][:, 1:], axis = 1)]
 attributes: # extra network attributes
     kind: CNN # the kind of neural network (CNN, RNN, ...)
     training_dataset: ImageNet # dataset used to for training
