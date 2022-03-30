@@ -1,13 +1,16 @@
-name: SE_ResNext_101_32x4D # name of your model
+name: DPN_131 # name of your model
 framework:
-  name: PyTorch # framework for the model
-  version: 1.8.1 # framework version constraint
+  name: Onnxruntime # framework for the model
+  version: 1.7.1 # framework version constraint
 version: 1.0 # version information in semantic version format
 description: >
-  The pre-trained model expects input in mini-batches of 3-channel RGB images of shape (3 x H x W), where H and W are expected to be 224. The images have to be loaded in to a range of [0, 1] and then normalized using mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225].
+  This model is a replication of the model described in the Dual Path Networks publication.
+  The pre-trained model expects input in mini-batches of 3-channel RGB images of shape (3 x H x W), where H and W are expected to be 224. The images have to be loaded in to a range of [0, 1] and then normalized using mean = [124 / 255, 117 / 255, 104 / 255] and std = [1 / (.0167 * 255), 1 / (.0167 * 255), 1 / (.0167 * 255)].
 references: # references to papers / websites / etc.. describing the model
   - https://github.com/Cadene/pretrained-models.pytorch#reproducing-results
-  - https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/senet.py
+  - https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/dpn.py
+  - https://github.com/cypw/DPNs
+  - https://github.com/oyam/pytorch-DPNs
 # license of the model
 license: BSD 3-Clause License
 # inputs to the model
@@ -22,8 +25,8 @@ inputs:
       layout: CHW
       color_mode: RGB
       dimensions: [3, 224, 224]
-      mean: [123.675, 116.280, 103.530] # [0.485, 0.456, 0.406] * 255
-      scale: [58.395, 57.120, 57.375]   # [0.229, 0.224. 0.225] * 255
+      mean: [124, 117, 104]
+      scale: [59.88, 59.88, 59.88]
 outputs:
   - type: classification
     description: the probability
@@ -34,8 +37,8 @@ model: # specifies model graph and weights resources
     false # if set, then the base_url is a url to an archive
     # the graph_path and weights_path then denote the
     # file names of the graph and weights within the archive
-  graph_path: https://s3.amazonaws.com/store.carml.org/models/pytorch/se_resnext101_32x4d-imagenet.pt
-  graph_checksum: 353df39873bd70397591f5e68dfff8cb
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/dpn131-imagenet.onnx
+  graph_checksum: ce7898dd8858a699e1a22cf784e9d5e2
   features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
   features_checksum: 4d234b5833aca44928065a180db3016a
 preprocess: |
@@ -45,7 +48,7 @@ preprocess: |
     transforms.Resize(256),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    transforms.Normalize(mean=[124 / 255, 117 / 255, 104 / 255], std=[59.88 / 255, 59.88 / 255, 59.88 / 255])
   ])
   def preprocess(ctx, data):
     img = Image.open(dataset[int(data)]).convert('RGB')

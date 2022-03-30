@@ -1,4 +1,4 @@
-name: SENet_154 # name of your model
+name: SE_ResNext_50_32x4D # name of your model
 framework:
   name: PyTorch # framework for the model
   version: 1.8.1 # framework version constraint
@@ -34,8 +34,8 @@ model: # specifies model graph and weights resources
     false # if set, then the base_url is a url to an archive
     # the graph_path and weights_path then denote the
     # file names of the graph and weights within the archive
-  graph_path: https://s3.amazonaws.com/store.carml.org/models/pytorch/senet154-imagenet.pt
-  graph_checksum: 989c3a72ebaf30596b3b8bf6488180ac
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/pytorch/se_resnext50_32x4d-imagenet.pt
+  graph_checksum: 34dc3df9301edc3c4583300587a67ed9
   features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
   features_checksum: 4d234b5833aca44928065a180db3016a
 preprocess: |
