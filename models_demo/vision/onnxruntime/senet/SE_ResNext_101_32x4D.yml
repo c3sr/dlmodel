@@ -1,4 +1,4 @@
-name: SE_ResNext_50_32x4D # name of your model
+name: SE_ResNext_101_32x4D # name of your model
 framework:
   name: Onnxruntime # framework for the model
   version: 1.7.1 # framework version constraint
@@ -11,7 +11,7 @@ references: # references to papers / websites / etc.. describing the model
 # license of the model
 license: BSD 3-Clause License
 # inputs to the model
-modality: general
+modality: image_classification
 inputs:
   - type: image
     # description of the first input

@@ -13,7 +13,7 @@ references:
 # license of the model
 license: Apache License, Version 2.0 # license of the model
 # inputs to the model
-modality: general
+modality: image_classification
 inputs:
   - type: image
     # description of the first input

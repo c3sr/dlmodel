@@ -12,7 +12,7 @@ references: # references to papers / websites / etc.. describing the model
 # license of the model
 license: BSD 3-Clause License
 # inputs to the model
-modality: general
+modality: image_classification
 inputs:
   - type: image
     # description of the first input
@@ -43,7 +43,7 @@ preprocess: |
   from torchvision import transforms
   from PIL import Image
   preprocessor = transforms.Compose([
-    transforms.Resize(299),
+    transforms.Resize((299, 299)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
   ])

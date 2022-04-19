@@ -13,7 +13,7 @@ references: # references to papers / websites / etc.. describing the model
 # license of the model
 license: BSD 3-Clause License
 # inputs to the model
-modality: general
+modality: image_classification
 inputs:
   - type: image
     # description of the first input

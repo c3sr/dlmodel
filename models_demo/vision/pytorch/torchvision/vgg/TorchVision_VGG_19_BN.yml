@@ -1,4 +1,4 @@
-name: TorchVision_VGG_11 # name of your model
+name: TorchVision_VGG_19_BN # name of your model
 framework:
   name: PyTorch # framework for the model
   version: 1.8.1 # framework version constraint
@@ -13,7 +13,7 @@ references: # references to papers / websites / etc.. describing the model
 # license of the model
 license: BSD 3-Clause License
 # inputs to the model
-modality: general
+modality: image_classification
 inputs:
   - type: image
     # description of the first input
