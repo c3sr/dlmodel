@@ -1,7 +1,7 @@
-name: MobileNet_v1 # name of your model
+name: Mobilenet_v1 # name of your model
 framework:
-    name: Onnxruntime # framework for the model
-    version: 1.7.1 # framework version constraint
+  name: Onnxruntime # framework for the model
+  version: 1.7.1 # framework version constraint
 version: 1.0 # version information in semantic version format
 description: >
   MLPerf_Mobilenet_v1_1.0_224.
@@ -13,33 +13,33 @@ references:
 # license of the model
 license: Apache License, Version 2.0 # license of the model
 # inputs to the model
-modality: general
+modality: image_classification
 inputs:
-    - type: image
-      # description of the first input
-      description: the input image
-      parameters: # type parameters
-          element_type: float32
-          input_layer: 0
-          layout: CHW
-          color_mode: RGB
-          dimensions: [3, 224, 224]
-          mean: [127.5, 127.5, 127.5]
-          scale: 127.5
+  - type: image
+    # description of the first input
+    description: the input image
+    parameters: # type parameters
+      element_type: float32
+      input_layer: 0
+      layout: CHW
+      color_mode: RGB
+      dimensions: [3, 224, 224]
+      mean: [127.5, 127.5, 127.5]
+      scale: 127.5
 outputs:
-    - type: classification
-      description: the probability
-      parameters:
-        element_type: float32
+  - type: classification
+    description: the probability
+    parameters:
+      element_type: float32
 model: # specifies model graph and weights resources
-    is_archive:
-        false # if set, then the base_url is a url to an archive
-        # the graph_path and weights_path then denote the
-        # file names of the graph and weights within the archive
-    graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/mobilenet_v1_1.0_224.onnx
-    graph_checksum: 5173c0ccbae0d4fe2acd514e8b847f0d
-    features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
-    features_checksum: 4d234b5833aca44928065a180db3016a
+  is_archive:
+    false # if set, then the base_url is a url to an archive
+    # the graph_path and weights_path then denote the
+    # file names of the graph and weights within the archive
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/mobilenet_v1_1.0_224.onnx
+  graph_checksum: 5173c0ccbae0d4fe2acd514e8b847f0d
+  features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
+  features_checksum: 4d234b5833aca44928065a180db3016a
 preprocess: |
   import numpy as np
   import cv2
@@ -80,10 +80,8 @@ preprocess: |
     img = cv2.imread(dataset[int(data)])
     return pre_process_mobilenet(img, [224, 224, 3], True)
 postprocess: |
-  import json
-  import numpy as np
   def postprocess(ctx, data):
-    return [json.dumps([x.item()]) for x in np.argmax(data[0][:, 1:], axis = 1)]
+    return data[0][:, 1:].tolist()
 attributes: # extra network attributes
     kind: CNN # the kind of neural network (CNN, RNN, ...)
     training_dataset: ImageNet # dataset used to for training

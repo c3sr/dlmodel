@@ -1,0 +1,62 @@
+name: TorchVision_VGG_11 # name of your model
+framework:
+  name: PyTorch # framework for the model
+  version: 1.8.1 # framework version constraint
+version: 1.0 # version information in semantic version format
+description: >
+  This model is a replication of the model described in the VGG publication.
+    All pre-trained models expect input images normalized in the same way, i.e. mini-batches of 3-channel RGB images of shape (3 x H x W), where H and W are expected to be at least 224. The images have to be loaded in to a range of [0, 1] and then normalized using mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225].
+references: # references to papers / websites / etc.. describing the model
+  - https://github.com/pytorch/vision/blob/master/torchvision/models/vgg.py
+  - https://pytorch.org/docs/stable/torchvision/index.html
+  - https://arxiv.org/pdf/1409.1556.pdf
+# license of the model
+license: BSD 3-Clause License
+# inputs to the model
+modality: image_classification
+inputs:
+  - type: image
+    # description of the first input
+    description: the input image
+    parameters: # type parameters
+      element_type: float32
+      input_layer: 0
+      layout: CHW
+      color_mode: RGB
+      dimensions: [3, 224, 224]
+      mean: [123.675, 116.280, 103.530] # [0.485, 0.456, 0.406] * 255
+      scale: [58.395, 57.120, 57.375]   # [0.229, 0.224. 0.225] * 255
+outputs:
+  - type: classification
+    description: the probability
+    parameters:
+      element_type: float32
+model: # specifies model graph and weights resources
+  is_archive:
+    false # if set, then the base_url is a url to an archive
+    # the graph_path and weights_path then denote the
+    # file names of the graph and weights within the archive
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/pytorch/vgg11.pt
+  graph_checksum: 07523ccdc0d8cfed64c79ef0a0acd8ba
+  features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
+  features_checksum: 4d234b5833aca44928065a180db3016a
+preprocess: |
+  from torchvision import transforms
+  from PIL import Image
+  preprocessor = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+  ])
+  def preprocess(ctx, data):
+    img = Image.open(dataset[int(data)]).convert('RGB')
+    return preprocessor(img).numpy()
+postprocess: |
+  from scipy.special import softmax
+  def postprocess(ctx, data):
+    return softmax(data[0], axis = 1).tolist()
+attributes: # extra network attributes
+  kind: CNN # the kind of neural network (CNN, RNN, ...)
+  training_dataset: ImageNet # dataset used to for training
+  manifest_author: Yen-Hsiang Chang
