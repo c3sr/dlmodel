@@ -1,0 +1,59 @@
+name: TorchVision_DeepLabv3_Resnet_101 # name of your model
+framework:
+  name: PyTorch # framework for the model
+  version: 1.8.1 # framework version constraint
+version: 1.0 # version information in semantic version format
+description: >
+  The images have to be loaded in to a range of [0, 1] and then normalized using mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225].
+references: # references to papers / websites / etc.. describing the model
+  - https://arxiv.org/pdf/1706.05587.pdf
+  - https://github.com/pytorch/vision/blob/master/torchvision/models/segmentation/deeplabv3.py
+  - https://pytorch.org/docs/stable/torchvision/models.html
+# license of the model
+license: BSD 3-Clause License
+modality: image_semantic_segmentation
+# inputs to the model
+inputs:
+  # first input type for the model
+  - type: image
+    # description of the first input
+    description: the input image
+    parameters: # type parameters
+      element_type: float32
+      input_layer: 0
+      layout: CHW
+      color_mode: RGB
+      mean: [123.675, 116.280, 103.530] # [0.485, 0.456, 0.406] * 255
+      scale: [58.395, 57.120, 57.375]   # [0.229, 0.224. 0.225] * 255
+outputs:
+  - type: semanticsegment
+    description: the output semantic segment # a description of the output parameter
+    parameters:
+      element_type: int64
+model: # specifies model graph and weights resources
+  is_archive:
+    false # if set, then the base_url is a url to an archive
+    # the graph_path and weights_path then denote the
+    # file names of the graph and weights within the archive
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/pytorch/deeplabv3_resnet101.pt
+  graph_checksum: 8adc41a27060bfadfe6fcde02dff59a0
+  features_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/deeplabv3_mnv2_pascal_train_aug_2018_01_29/pascal-voc-classes.txt
+  features_checksum: 9ce439bcfb44c304e49a0fe1ae398f69
+preprocess: |
+  from torchvision import transforms
+  from PIL import Image
+  preprocessor = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+  ])
+  def preprocess(ctx, data):
+    img = Image.open(dataset[int(data)]).convert('RGB')
+    return preprocessor(img).numpy()
+postprocess: |
+  import numpy as np
+  def postprocess(ctx, data):
+    return np.argmax(data[0], axis = 1).tolist()
+attributes: # extra network attributes
+  kind: CNN # the kind of neural network (CNN, RNN, ...)
+  training_dataset: COCO 2017 # dataset used to for training
+  manifest_author: Yen-Hsiang Chang
