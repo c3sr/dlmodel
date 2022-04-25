@@ -1,21 +1,19 @@
-name: SSD_MobileNet_300x300 # name of your model
+name: SSD_MobileNet_300x300
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.7.1 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.7.1
+version: 1.0
 description: >
   MLPerf_SSD_MobileNet_300x300.
-references: # references to papers / websites / etc.. describing the model
+references:
   - https://github.com/mlperf/inference/tree/master/v0.5/classification_and_detection
   - https://github.com/mlcommons/inference/blob/master/vision/classification_and_detection/tools/convert-to-onnx.sh
-license: Apache License, Version 2.0 # license of the model
-# inputs to the model
+license: Apache License, Version 2.0
 modality: image_object_detection
 inputs:
   - type: image
-    # description of the first input
     description: the input image
-    parameters: # type parameters
+    parameters:
       element_type: uint8
       input_layer: 0
       layout: HWC
@@ -34,11 +32,9 @@ outputs:
     description: scores
     paramenters:
       element_type: float32
-model: # specifies model graph and weights resources
+model:
   is_archive:
-    false # if set, then the base_url is a url to an archive
-    # the graph_path and weights_path then denote the
-    # file names of the graph and weights within the archive
+    false
   graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/ssd_mobilenet_v1_coco_2018_01_28.onnx
   graph_checksum: f78c11efb00ee6e698de5fc61724074f
   features_path: https://s3.amazonaws.com/store.carml.org/synsets/coco/coco_labels_paper_background.txt
@@ -49,7 +45,6 @@ preprocess: |
   def maybe_resize(img, dims):
     img = np.array(img, dtype=np.float32)
     if len(img.shape) < 3 or img.shape[2] != 3:
-      # some images might be grayscale
       img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     if dims != None:
@@ -59,7 +54,6 @@ preprocess: |
   def pre_process_coco_mobilenet(img, dims=None, need_transpose=False):
     img = maybe_resize(img, dims)
     img = np.asarray(img, dtype=np.uint8)
-    # transpose if needed
     if need_transpose:
       img = img.transpose([2, 0, 1])
     return img
@@ -86,7 +80,7 @@ postprocess: |
           box = detection_boxes[detection]
           boxes[-1].append([box[0], box[1], box[2], box[3]])
     return probabilities, classes, boxes
-attributes: # extra network attributes
-  kind: CNN # the kind of neural network (CNN, RNN, ...)
-  training_dataset: COCO 2017 # dataset used to for training
+attributes:
+  kind: CNN
+  training_dataset: COCO 2017
   manifest_author: Yen-Hsiang Chang

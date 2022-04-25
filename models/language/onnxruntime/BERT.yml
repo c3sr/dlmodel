@@ -1,29 +1,27 @@
-name: BERT # name of your model
+name: BERT
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.7.1 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.7.1
+version: 1.0
 description: >
   MLPerf_BERT.
 references:
   - https://github.com/mlcommons/inference/tree/master/language/bert
   - https://zenodo.org/record/3733910
-# license of the model
-license: Apache License, Version 2.0 # license of the model
-# inputs to the model
+license: Apache License, Version 2.0
 modality: general
 inputs:
     - type: general
       description: input id
-      parameters: # type parameters
+      parameters:
           element_type: int64
     - type: general
       description: input mask
-      parameters: # type parameters
+      parameters:
           element_type: int64
     - type: general
       description: segment id
-      parameters: # type parameters
+      parameters:
           element_type: int64
 outputs:
     - type: general
@@ -34,11 +32,9 @@ outputs:
       description: end position to the answe
       parameters:
         element_type: int64
-model: # specifies model graph and weights resources
+model:
     is_archive:
-        false # if set, then the base_url is a url to an archive
-        # the graph_path and weights_path then denote the
-        # file names of the graph and weights within the archive
+        false
     graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/bert.onnx
     graph_checksum: 819b25b19cd8e59080c10892689750ca
 preprocess: |
@@ -52,6 +48,6 @@ postprocess: |
     import json
     res = np.stack([data[0], data[1]], axis = -1).squeeze(0).tolist()
     return [json.dumps(res)]
-attributes: # extra network attributes
-    kind: Transformer # the kind of neural network (CNN, RNN, ...)
+attributes:
+    kind: Transformer
     manifest_author: Yen-Hsiang Chang

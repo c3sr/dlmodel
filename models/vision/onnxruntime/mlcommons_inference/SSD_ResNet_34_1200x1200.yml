@@ -1,29 +1,26 @@
-name: SSD_ResNet_34_1200x1200 # name of your model
+name: SSD_ResNet_34_1200x1200
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.7.1 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.7.1
+version: 1.0
 description: >
   MLPerf_SSD_ResNet34_1200x1200.
-references: # references to papers / websites / etc.. describing the model
+references:
   - https://github.com/mlperf/inference/tree/master/v0.5/classification_and_detection
   - https://github.com/mlperf/inference/tree/master/others/cloud/single_stage_detector/tensorflow
-# license of the model
-license: Apache License, Version 2.0 # license of the model
-# inputs to the model
+license: Apache License, Version 2.0
 modality: image_object_detection
 inputs:
     - type: image
-      # description of the first input
       description: the input image
-      parameters: # type parameters
+      parameters:
           element_type: float32
           input_layer: 0
           layout: CHW
           color_mode: RGB
           dimensions: [3, 1200, 1200]
-          mean: [123.675, 116.280, 103.530] # [0.485, 0.456, 0.406] * 255
-          scale: [58.395, 57.120, 57.375]   # [0.229, 0.224. 0.225] * 255
+          mean: [123.675, 116.280, 103.530]
+          scale: [58.395, 57.120, 57.375]  
 outputs:
     - type: boundingboxes
       description: boundingboxes
@@ -37,11 +34,9 @@ outputs:
       description: scores
       paramenters:
         element_type: float32
-model: # specifies model graph and weights resources
+model:
     is_archive:
-        false # if set, then the base_url is a url to an archive
-        # the graph_path and weights_path then denote the
-        # file names of the graph and weights within the archive
+        false
     graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/resnet34-ssd1200.onnx
     graph_checksum: b70fc6c72bc9349981f3b1258f31bc87
     features_path: https://s3.amazonaws.com/store.carml.org/synsets/coco/coco_labels_2014_2017_background.txt
@@ -52,7 +47,6 @@ preprocess: |
   def maybe_resize(img, dims):
     img = np.array(img, dtype=np.float32)
     if len(img.shape) < 3 or img.shape[2] != 3:
-      # some images might be grayscale
       img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     if dims != None:
@@ -92,7 +86,7 @@ postprocess: |
         box = detection_boxes[detection]
         boxes[-1].append([box[1], box[0], box[3], box[2]])
     return probabilities, classes, boxes
-attributes: # extra network attributes
-    kind: CNN # the kind of neural network (CNN, RNN, ...)
-    training_dataset: COCO 2017 # dataset used to for training
+attributes:
+    kind: CNN
+    training_dataset: COCO 2017
     manifest_author: Yen-Hsiang Chang
