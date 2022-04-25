@@ -1,8 +1,8 @@
-name: Mobilenet_v1 # name of your model
+name: Mobilenet_v1
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.7.1 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.7.1
+version: 1.0
 description: >
   MLPerf_Mobilenet_v1_1.0_224.
 references:
@@ -10,15 +10,12 @@ references:
   - https://github.com/mlperf/inference/tree/master/v0.5/classification_and_detection
   - https://github.com/mlperf/training/tree/master/image_classification
   - https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.md
-# license of the model
-license: Apache License, Version 2.0 # license of the model
-# inputs to the model
+license: Apache License, Version 2.0
 modality: image_classification
 inputs:
   - type: image
-    # description of the first input
     description: the input image
-    parameters: # type parameters
+    parameters:
       element_type: float32
       input_layer: 0
       layout: CHW
@@ -31,11 +28,9 @@ outputs:
     description: the probability
     parameters:
       element_type: float32
-model: # specifies model graph and weights resources
+model:
   is_archive:
-    false # if set, then the base_url is a url to an archive
-    # the graph_path and weights_path then denote the
-    # file names of the graph and weights within the archive
+    false
   graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/mobilenet_v1_1.0_224.onnx
   graph_checksum: 5173c0ccbae0d4fe2acd514e8b847f0d
   features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
@@ -72,7 +67,6 @@ preprocess: |
     img /= 255.0
     img -= 0.5
     img *= 2
-    # transpose if needed
     if need_transpose:
       img = img.transpose([2, 0, 1])
     return img
@@ -82,7 +76,7 @@ preprocess: |
 postprocess: |
   def postprocess(ctx, data):
     return data[0][:, 1:].tolist()
-attributes: # extra network attributes
-    kind: CNN # the kind of neural network (CNN, RNN, ...)
-    training_dataset: ImageNet # dataset used to for training
+attributes:
+    kind: CNN
+    training_dataset: ImageNet
     manifest_author: Yen-Hsiang Chang

@@ -1,33 +1,28 @@
-name: 3DUNet # name of your model
+name: 3DUNet
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.8.0 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.8.0
+version: 1.0
 description: >
   MLPerf_3DUNet.
 references:
   - https://github.com/mlcommons/inference/tree/master/vision/medical_imaging/3d-unet-brats19
   - https://zenodo.org/record/3928973
-# license of the model
-license: Apache License, Version 2.0 # license of the model
-# inputs to the model
+license: Apache License, Version 2.0
 modality: general
 inputs:
     - type: image
-      # description of the first input
       description: MRI scans
-      parameters: # type parameters
+      parameters:
           element_type: float32
 outputs:
     - type: segmentation
       description: segmentation
       parameters:
         element_type: float16
-model: # specifies model graph and weights resources
+model:
     is_archive:
-        false # if set, then the base_url is a url to an archive
-        # the graph_path and weights_path then denote the
-        # file names of the graph and weights within the archive
+        false
     graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/3dunet.onnx
     graph_checksum: b163649a0656539d609ef3a6a5ddd000
 preprocess: |
@@ -43,6 +38,6 @@ postprocess: |
     import numpy as np
     import json
     return [json.dumps(data[0].squeeze(0).astype(np.float16).tolist())]
-attributes: # extra network attributes
-    kind: CNN # the kind of neural network (CNN, RNN, ...)
+attributes:
+    kind: CNN
     manifest_author: Yen-Hsiang Chang

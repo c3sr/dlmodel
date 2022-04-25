@@ -1,23 +1,20 @@
-name: Inception_v3.0 # name of your model
+name: Inception_v3.0
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.7.1 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.7.1
+version: 1.0
 description: >
   The pre-trained model expects input in mini-batches of 3-channel RGB images of shape (3 x H x W), where H and W are expected to be 299. The images have to be loaded in to a range of [0, 1] and then normalized using mean = [0.5, 0.5, 0.5] and std = [0.5, 0.5, 0.5].
-references: # references to papers / websites / etc.. describing the model
-  - https://github.com/Cadene/pretrained-models.pytorch#reproducing-results
+references:
+  - https://github.com/Cadene/pretrained-models.pytorc
   - https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/inceptionresnetv2.py
   - https://arxiv.org/abs/1602.07261
-# license of the model
 license: BSD 3-Clause License
-# inputs to the model
 modality: image_classification
 inputs:
   - type: image
-    # description of the first input
     description: the input image
-    parameters: # type parameters
+    parameters:
       element_type: float32
       input_layer: 0
       layout: CHW
@@ -30,11 +27,9 @@ outputs:
     description: the probability
     parameters:
       element_type: float32
-model: # specifies model graph and weights resources
+model:
   is_archive:
-    false # if set, then the base_url is a url to an archive
-    # the graph_path and weights_path then denote the
-    # file names of the graph and weights within the archive
+    false
   graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/inceptionv3-imagenet.onnx
   graph_checksum: 31709e7318796f5fc984cedd028100a4
   features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
@@ -54,7 +49,7 @@ postprocess: |
   from scipy.special import softmax
   def postprocess(ctx, data):
     return softmax(data[0], axis = 1).tolist()
-attributes: # extra network attributes
-  kind: CNN # the kind of neural network (CNN, RNN, ...)
-  training_dataset: ImageNet # dataset used to for training
+attributes:
+  kind: CNN
+  training_dataset: ImageNet
   manifest_author: Yen-Hsiang Chang

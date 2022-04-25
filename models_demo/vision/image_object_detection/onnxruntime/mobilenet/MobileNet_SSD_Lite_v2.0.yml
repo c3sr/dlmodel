@@ -1,25 +1,21 @@
-name: MobileNet_SSD_Lite_v2.0 # name of your model
+name: MobileNet_SSD_Lite_v2.0
 framework:
-  name: Onnxruntime # framework for the model
-  version: 1.7.1 # framework version constraint
-version: 1.0 # version information in semantic version format
+  name: Onnxruntime
+  version: 1.7.1
+version: 1.0
 description: >
   This model is a replication of the model described in the MobileNet publication. This model expects mini-batches of 3-channel RGB images of shape (3 x H x W), where H and W are expected to be at least 300. The images have to be loaded in to a range of [0, 255] and then normalized using mean = [127, 127, 127] and std = [128, 128, 128]
-references: # references to papers / websites / etc.. describing the model
+references:
   - https://github.com/qfgaohao/pytorch-ssd/blob/master/vision/nn/mobilenet.py
   - https://github.com/qfgaohao/pytorch-ssd/blob/master/vision/ssd/mobilenet_v2_ssd_lite.py
   - https://storage.googleapis.com/models-hao/mb2-ssd-lite-mp-0_686.pth
   - https://arxiv.org/pdf/1704.04861.pdf
-# license of the model
 license: MIT License
 modality: image_object_detection
-# inputs to the model
 inputs:
-  # first input type for the model
   - type: image
-    # description of the first input
     description: the input image
-    parameters: # type parameters
+    parameters:
       element_type: float32
       input_layer: 0
       layout: CHW
@@ -36,11 +32,9 @@ outputs:
     description: boundingboxes
     parameters:
       element_type: float32
-model: # specifies model graph and weights resources
+model:
   is_archive:
-    false # if set, then the base_url is a url to an archive
-    # the graph_path and weights_path then denote the
-    # file names of the graph and weights within the archive
+    false
   graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/mb2-ssd-lite.onnx
   graph_checksum: ac33959f371eaed1be866499af3b2894
   features_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/deeplabv3_mnv2_pascal_train_aug_2018_01_29/pascal-voc-classes.txt
@@ -78,7 +72,7 @@ postprocess: |
         box = detection_boxes[detection]
         boxes[-1].append([box[1], box[0], box[3], box[2]])
     return probabilities, classes, boxes
-attributes: # extra network attributes
-  kind: CNN # the kind of neural network (CNN, RNN, ...)
-  training_dataset: ImageNet # dataset used to for training
+attributes:
+  kind: CNN
+  training_dataset: ImageNet
   manifest_author: Yen-Hsiang Chang
