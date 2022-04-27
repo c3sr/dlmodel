@@ -30,7 +30,7 @@ outputs:
         element_type: float32
     - type: scores
       description: scores
-      paramenters:
+      parameters:
         element_type: float32
 model:
     is_archive:

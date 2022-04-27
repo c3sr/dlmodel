@@ -65,7 +65,7 @@ postprocess: |
       detection_classes = np.argmax(data[0][i], axis = 1)
       scores = np.max(data[0][i], axis = 1)
       for detection in range(len(scores)):
-        if scores[detection] < 0.9 or detection_classes[detection] == 0:
+        if detection_classes[detection] == 0:
           continue
         probabilities[-1].append(scores[detection])
         classes[-1].append(detection_classes[detection])
@@ -74,5 +74,5 @@ postprocess: |
     return probabilities, classes, boxes
 attributes:
   kind: CNN
-  training_dataset: ImageNet
+  training_dataset: Pascal VOC
   manifest_author: Yen-Hsiang Chang

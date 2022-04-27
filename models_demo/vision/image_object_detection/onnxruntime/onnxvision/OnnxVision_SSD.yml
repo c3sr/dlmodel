@@ -33,7 +33,7 @@ outputs:
       element_type: float32
   - type: scores
     description: scores
-    paramenters:
+    parameters:
       element_type: float32
 model:
     is_archive:
@@ -61,15 +61,14 @@ postprocess: |
       for j in range(len(data[0][i])):
         prob, label, box = data[2][i][j], data[1][i][j], data[0][i][j].tolist()
         box = [box[1], box[0], box[3], box[2]]
-        if prob >= 0.5:
-          cur_probs.append(prob)
-          cur_labels.append(label)
-          cur_boxes.append(box)
+        cur_probs.append(prob)
+        cur_labels.append(label)
+        cur_boxes.append(box)
       probs.append(cur_probs)
       labels.append(cur_labels)
       boxes.append(cur_boxes)
     return probs, labels, boxes
 attributes:
   kind: CNN
-  training_dataset: COCO 2017
+  training_dataset: COCO
   manifest_author: Yen-Hsiang Chang
