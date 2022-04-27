@@ -1,0 +1,77 @@
+name: SSD_512_ResNet_50_v1_VOC
+framework:
+  name: MXNet
+  version: 1.8.0
+version: 1.0
+description: >
+  MXNet Object Detection model, which is trained on the Pascal VOC dataset.
+  Use SSD_512_ResNet_50_v1_VOC from GluonCV model zoo.
+references:
+  - https://gluon-cv.mxnet.io/model_zoo/detection.html
+license: Apache License 2.0
+modality: image_object_detection
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: float32
+      input_layer: data
+      layout: CHW
+      color_mode: RGB
+      dimensions: [3, 512, 544]
+      mean: [123.675, 116.28, 103.53]
+      scale: [58.395, 57.12, 57.375]
+outputs:
+  - type: classes
+    description: classes
+    parameters:
+      element_type: float32
+  - type: scores
+    description: scores
+    parameters:
+      element_type: float32
+  - type: boundingboxes
+    description: boundingboxes
+    parameters:
+      element_type: float32
+model:
+  is_archive:
+    false
+  graph_path: http://s3.amazonaws.com/store.carml.org/models/mxnet/gluoncv/ssd_512_resnet50_v1_voc/model-symbol.json
+  graph_checksum: d78d6e5cadd215ae11df6ee9feaaf28c
+  weights_path: http://s3.amazonaws.com/store.carml.org/models/mxnet/gluoncv/ssd_512_resnet50_v1_voc/model-0000.params
+  weights_checksum: b108d96362d638448e4549a4f777998d
+  features_path: https://s3.amazonaws.com/store.carml.org/synsets/pascal_voc/pascal_voc_lables_no_background.txt
+  features_checksum: 5ae5d62183cfb6f6d3ac109359d06a1b
+preprocess: |
+  from torchvision import transforms
+  from PIL import Image
+  preprocessor = transforms.Compose([
+    transforms.Resize((512, 544)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+  ])
+  def preprocess(ctx, data):
+    img = Image.open(dataset[int(data)]).convert('RGB')
+    return preprocessor(img).numpy()
+postprocess: |
+  def postprocess(ctx, data):
+    probs, labels, boxes = [], [], []
+    for i in range(len(data[0])):
+      cur_probs, cur_labels, cur_boxes = [], [], []
+      for j in range(len(data[0][i])):
+        prob, label, box = data[1][i][j][0], data[0][i][j][0], data[2][i][j].tolist()
+        if label == -1:
+          continue
+        box = [box[1] / 512, box[0] / 544, box[3] / 512, box[2] / 544]
+        cur_probs.append(prob)
+        cur_labels.append(label)
+        cur_boxes.append(box)
+      probs.append(cur_probs)
+      labels.append(cur_labels)
+      boxes.append(cur_boxes)
+    return probs, labels, boxes
+attributes:
+  kind: CNN
+  training_dataset: Pascal VOC
+  manifest_author: Yen-Hsiang Chang

@@ -21,7 +21,8 @@ var downloadCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		for _, pattern := range args {
 			if err := downloadPattern(pattern); err != nil {
-				return err
+				fmt.Println(err.Error())
+				return nil
 			}
 		}
 		return nil
@@ -108,24 +109,33 @@ func downloadFile(path string) error {
 
 		if model.GetModel().GetGraphPath() != "" {
 			graphPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetGraphPath()))
-			_, _, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetGraphPath(), graphPath, downloadmanager.MD5Sum(modelChecksum))
+			str, ok, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetGraphPath(), graphPath, downloadmanager.MD5Sum(modelChecksum))
 			if err != nil {
 				return fmt.Errorf("failed to download model from %v", baseURL+model.GetModel().GetGraphPath())
+			}
+			if !ok && str == "" {
+				return fmt.Errorf("MD5Sum of %v is incorrect.", baseURL+model.GetModel().GetGraphPath())
 			}
 		}
 		if model.GetModel().GetWeightsPath() != "" {
 			weightsPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetWeightsPath()))
 			weightsChecksum := model.GetModel().GetWeightsChecksum()
-			_, _, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetWeightsPath(), weightsPath, downloadmanager.MD5Sum(weightsChecksum))
+			str, ok, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetWeightsPath(), weightsPath, downloadmanager.MD5Sum(weightsChecksum))
 			if err != nil {
 				return fmt.Errorf("failed to download weight from %v", baseURL+model.GetModel().GetWeightsPath())
+			}
+			if !ok && str == "" {
+				return fmt.Errorf("MD5Sum of %v is incorrect.", baseURL+model.GetModel().GetWeightsPath())
 			}
 		}
 		if model.GetModel().GetFeaturesPath() != "" {
 			featuresPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetFeaturesPath()))
-			_, _, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetFeaturesPath(), featuresPath, downloadmanager.MD5Sum(model.GetModel().GetFeaturesChecksum()))
+			str, ok, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetFeaturesPath(), featuresPath, downloadmanager.MD5Sum(model.GetModel().GetFeaturesChecksum()))
 			if err != nil {
 				return fmt.Errorf("failed to download features from %v", baseURL+model.GetModel().GetFeaturesPath())
+			}
+			if !ok && str == "" {
+				return fmt.Errorf("MD5Sum of %v is incorrect.", baseURL+model.GetModel().GetFeaturesPath())
 			}
 		}
 	}

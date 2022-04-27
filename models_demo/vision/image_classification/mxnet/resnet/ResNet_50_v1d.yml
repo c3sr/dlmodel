@@ -1,0 +1,58 @@
+name: ResNet_50_v1d
+framework:
+  name: MXNet
+  version: 1.8.0
+version: 1.0
+description: >
+  MXNet Image Classification model, which is trained on the ImageNet dataset.
+  Use ResNet_50_v1d from GluonCV model zoo.
+references:
+  - https://gluon-cv.mxnet.io/model_zoo/classification.html
+  - https://github.com/dmlc/gluon-cv/blob/master/scripts/classification/imagenet/verify_pretrained.py
+license: Apache License 2.0
+modality: image_classification
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: float32
+      input_layer: data
+      layout: CHW
+      color_mode: RGB
+      dimensions: [3, 224, 224]
+      mean: [123.675, 116.280, 103.530]
+      scale: [58.395, 57.120, 57.375]  
+outputs:
+  - type: classification
+    description: the probability
+    parameters:
+      element_type: float32
+model:
+  is_archive:
+    false
+  graph_path: http://s3.amazonaws.com/store.carml.org/models/mxnet/gluoncv/resnet50_v1d/model-symbol.json
+  graph_checksum: 0d3983cddfc663ff056b388fcfbb7849
+  weights_path: http://s3.amazonaws.com/store.carml.org/models/mxnet/gluoncv/resnet50_v1d/model-0000.params
+  weights_checksum: 37dab86f14df455a84269758f63e618d
+  features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
+  features_checksum: 4d234b5833aca44928065a180db3016a
+preprocess: |
+  from torchvision import transforms
+  from PIL import Image
+  preprocessor = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+  ])
+  def preprocess(ctx, data):
+    img = Image.open(dataset[int(data)]).convert('RGB')
+    return preprocessor(img).numpy()
+postprocess: |
+  from scipy.special import softmax
+  def postprocess(ctx, data):
+    return softmax(data[0], axis = 1).tolist()
+attributes:
+  kind: CNN
+  training_dataset: ImageNet
+  manifest_author: Yen-Hsiang Chang

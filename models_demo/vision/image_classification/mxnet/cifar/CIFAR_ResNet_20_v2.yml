@@ -1,0 +1,62 @@
+name: CIFAR_ResNet_20_v2
+framework:
+  name: MXNet
+  version: 1.8.0
+version: 1.0
+description: >
+  MXNet Image Classification model, which is trained on the CIFAR10 dataset.
+  Use CIFAR_ResNet_20_v2 from GluonCV model zoo.
+references:
+  - https://gluon-cv.mxnet.io/model_zoo/classification.html
+  - https://github.com/dmlc/gluon-cv/blob/master/scripts/classification/imagenet/verify_pretrained.py
+license: Apache License 2.0
+modality: image_classification
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: float32
+      input_layer: data
+      layout: CHW
+      color_mode: RGB
+      dimensions: [3, 32, 32]
+      mean: [0.4914, 0.4822, 0.4465]
+      scale: [0.2023, 0.1994, 0.2010]  
+outputs:
+  - type: classification
+    description: the probability
+    parameters:
+      element_type: float32
+model:
+  is_archive:
+    false
+  graph_path: http://s3.amazonaws.com/store.carml.org/models/mxnet/gluoncv/cifar_resnet20_v2/model-symbol.json
+  graph_checksum: 53a340074591bbdd3990b401800655ce
+  weights_path: http://s3.amazonaws.com/store.carml.org/models/mxnet/gluoncv/cifar_resnet20_v2/model-0000.params
+  weights_checksum: 9fc3dd1a6d132e47922d3ef18737905e
+  features_path: http://s3.amazonaws.com/store.carml.org/synsets/cifar/cifar10.txt
+  features_checksum: 40a0b180e208fe03a63ecc891b2555ad
+preprocess: |
+  import numpy as np
+  import cv2
+  def preprocess_cifar(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img, (32, 32))
+    img = np.asarray(img, dtype = 'float32') / 255
+    means = np.array([0.4914, 0.4822, 0.4465])
+    std = np.array([0.2023, 0.1994, 0.2010])
+    img = (img - means) / std
+    img = img.transpose([2, 0, 1])
+    return img
+  def preprocess(ctx, data):
+    img = cv2.imread(dataset[int(data)])
+    return np.ascontiguousarray(preprocess_cifar(img), dtype=np.float32)
+    return preprocessor(img).numpy()
+postprocess: |
+  from scipy.special import softmax
+  def postprocess(ctx, data):
+    return softmax(data[0], axis = 1).tolist()
+attributes:
+  kind: CNN
+  training_dataset: CIFAR10
+  manifest_author: Yen-Hsiang Chang

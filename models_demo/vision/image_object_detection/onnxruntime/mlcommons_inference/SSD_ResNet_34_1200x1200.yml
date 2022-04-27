@@ -32,7 +32,7 @@ outputs:
       element_type: float32
   - type: scores
     description: scores
-    paramenters:
+    parameters:
       element_type: float32
 model:
     is_archive:
@@ -88,5 +88,5 @@ postprocess: |
     return probabilities, classes, boxes
 attributes:
   kind: CNN
-  training_dataset: COCO 2017
+  training_dataset: COCO
   manifest_author: Yen-Hsiang Chang
