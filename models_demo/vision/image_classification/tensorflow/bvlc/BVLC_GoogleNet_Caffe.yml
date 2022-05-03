@@ -1,0 +1,92 @@
+name: BVLC_GoogleNet_Caffe
+framework:
+  name: TensorFlow
+  version: 1.14.0
+version: 1.0
+description: >
+  This model is a replication of the model described in the GoogleNet publication. We would like to thank Christian Szegedy for all his help in the replication of GoogleNet model.
+  Differences:
+  not training with the relighting data-augmentation;
+  not training with the scale or aspect-ratio data-augmentation;
+  uses "xavier" to initialize the weights instead of "gaussian";
+  quick_solver.prototxt uses a different learning rate decay policy than the original solver.prototxt, that allows a much faster training (60 epochs vs 250 epochs);
+  The bundled model is the iteration 2,400,000 snapshot (60 epochs) using quick_solver.prototxt
+  This bundled model obtains a top-1 accuracy 68.7% (31.3% error) and a top-5 accuracy 88.9% (11.1% error) on the validation set, using just the center crop.
+  (Using the average of 10 crops, (4 + 1 center) * 2 mirror, should obtain a bit higher accuracy.)
+  Timings for bvlc_googlenet with cuDNN using batch_size:128 on a K40c:
+  Average Forward pass: 562.841 ms.
+  Average Backward pass: 1123.84 ms.
+  Average Forward-Backward: 1688.8 ms.
+  This model was trained by Sergio Guadarrama @sguada
+references:
+  - https://github.com/BVLC/Caffe/tree/master/models/bvlc_googlenet
+  - https://arxiv.org/abs/1409.4842
+license: unrestricted
+modality: image_classification
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: float32
+      input_layer: data
+      layout: HWC
+      color_mode: BGR
+      dimensions: [3, 227, 227]
+      mean: [104, 117, 123]
+outputs:
+  - type: classification
+    description: the probability
+    parameters:
+      element_type: float32
+      output_layer: prob
+model:
+  is_archive:
+    false
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/bvlc_googlenet_1.0/frozen_model.pb
+  graph_checksum: 283087f6a9c25d851e581ea19944ff9d
+  features_path: https://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
+  features_checksum: 4d234b5833aca44928065a180db3016a
+preprocess: |
+  import numpy as np
+  import cv2
+  def center_crop(img, out_height, out_width):
+    height, width, _ = img.shape
+    left = int((width - out_width) / 2)
+    right = int((width + out_width) / 2)
+    top = int((height - out_height) / 2)
+    bottom = int((height + out_height) / 2)
+    img = img[top:bottom, left:right]
+    return img
+  def resize_with_aspectratio(img, out_height, out_width, scale=87.5, inter_pol=cv2.INTER_LINEAR):
+    height, width, _ = img.shape
+    new_height = int(100. * out_height / scale)
+    new_width = int(100. * out_width / scale)
+    if height > width:
+      w = new_width
+      h = int(new_height * height / width)
+    else:
+      h = new_height
+      w = int(new_width * width / height)
+    img = cv2.resize(img, (w, h), interpolation=inter_pol)
+    return img
+  def preprocess_image(img, dims=None, need_transpose=False):
+    output_height, output_width, _ = dims
+    cv2_interpol = cv2.INTER_AREA
+    img = resize_with_aspectratio(img, output_height, output_width, inter_pol=cv2_interpol)
+    img = center_crop(img, output_height, output_width)
+    img = np.asarray(img, dtype='float32')
+    means = np.array([104, 117, 123])
+    img -= means
+    if need_transpose:
+      img = img.transpose([2, 0, 1])
+    return img
+  def preprocess(ctx, data):
+    img = cv2.imread(dataset[int(data)])
+    return preprocess_image(img, [224, 224, 3], False)
+postprocess: |
+  def postprocess(ctx, data):
+    return data[0].tolist()
+attributes:
+  kind: CNN
+  training_dataset: ImageNet
+  manifest_author: Yen-Hsiang Chang

@@ -1,26 +1,24 @@
-name: SSD_ResNet_34_1200x1200
+name: MLCommons_SSD_MobileNet_300x300
 framework:
   name: Onnxruntime
   version: 1.7.1
 version: 1.0
 description: >
-  MLPerf_SSD_ResNet34_1200x1200.
+  MLCommons_SSD_MobileNet_300x300.
 references:
   - https://github.com/mlperf/inference/tree/master/v0.5/classification_and_detection
-  - https://github.com/mlperf/inference/tree/master/others/cloud/single_stage_detector/tensorflow
+  - https://github.com/mlcommons/inference/blob/master/vision/classification_and_detection/tools/convert-to-onnx.sh
 license: Apache License, Version 2.0
 modality: image_object_detection
 inputs:
   - type: image
     description: the input image
     parameters:
-      element_type: float32
+      element_type: uint8
       input_layer: 0
-      layout: CHW
+      layout: HWC
       color_mode: RGB
-      dimensions: [3, 1200, 1200]
-      mean: [123.675, 116.280, 103.530]
-      scale: [58.395, 57.120, 57.375]  
+      dimensions: [3, 300, 300]
 outputs:
   - type: boundingboxes
     description: boundingboxes
@@ -35,12 +33,12 @@ outputs:
     parameters:
       element_type: float32
 model:
-    is_archive:
-      false
-    graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/resnet34-ssd1200.onnx
-    graph_checksum: b70fc6c72bc9349981f3b1258f31bc87
-    features_path: https://s3.amazonaws.com/store.carml.org/synsets/coco/coco_labels_2014_2017_background.txt
-    features_checksum: e7103a997c945e0f87c49a03c9c56a1b
+  is_archive:
+    false
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/ssd_mobilenet_v1_coco_2018_01_28.onnx
+  graph_checksum: f78c11efb00ee6e698de5fc61724074f
+  features_path: https://s3.amazonaws.com/store.carml.org/synsets/coco/coco_labels_paper_background.txt
+  features_checksum: 17249a4106513972e03c00728e7cd380
 preprocess: |
   import numpy as np
   import cv2
@@ -53,18 +51,15 @@ preprocess: |
       im_height, im_width, _ = dims
       img = cv2.resize(img, (im_width, im_height), interpolation=cv2.INTER_LINEAR)
     return img
-  def pre_process_coco_resnet34(img, dims=None, need_transpose=False):
+  def pre_process_coco_mobilenet(img, dims=None, need_transpose=False):
     img = maybe_resize(img, dims)
-    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
-    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
-    img = img / 255. - mean
-    img = img / std
+    img = np.asarray(img, dtype=np.uint8)
     if need_transpose:
       img = img.transpose([2, 0, 1])
     return img
   def preprocess(ctx, data):
     img = cv2.imread(dataset[int(data)])
-    return pre_process_coco_resnet34(img, [1200, 1200, 3], True)
+    return pre_process_coco_mobilenet(img, [300, 300, 3], False)
 postprocess: |
   def postprocess(ctx, data):
     n = len(data[0])
@@ -75,16 +70,15 @@ postprocess: |
       probabilities.append([])
       classes.append([])
       boxes.append([])
-      detection_boxes = data[0][i]
-      detection_classes = data[1][i]
+      detection_boxes = data[1][i]
+      detection_classes = data[3][i]
       scores = data[2][i]
       for detection in range(len(scores)):
-        if scores[detection] < 0.5:
-          break
-        probabilities[-1].append(scores[detection])
-        classes[-1].append(float(detection_classes[detection]))
-        box = detection_boxes[detection]
-        boxes[-1].append([box[1], box[0], box[3], box[2]])
+        if scores[detection] >= 0.5:
+          probabilities[-1].append(scores[detection])
+          classes[-1].append(float(detection_classes[detection]))
+          box = detection_boxes[detection]
+          boxes[-1].append([box[0], box[1], box[2], box[3]])
     return probabilities, classes, boxes
 attributes:
   kind: CNN

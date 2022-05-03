@@ -33,7 +33,7 @@ preprocess: |
 postprocess: |
   import numpy as np
   def postprocess(ctx, data):
-    return np.transpose(data[0], axes=[0, 2, 3, 1]).tolist()
+    return (255 * np.transpose(data[0], axes=[0, 2, 3, 1])).tolist()
 attributes:
   kind: CNN
   training_dataset: VOC

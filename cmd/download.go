@@ -96,9 +96,12 @@ func downloadFile(path string) error {
 
 	if model.Model.IsArchive {
 		baseURL := model.Model.BaseUrl
-		_, err := downloadmanager.DownloadInto(baseURL, workDir, downloadmanager.MD5Sum(modelChecksum))
+		str, err := downloadmanager.DownloadInto(baseURL, workDir, downloadmanager.MD5Sum(modelChecksum))
 		if err != nil {
 			return fmt.Errorf("failed to download model archive from %v", model.Model.BaseUrl)
+		}
+		if str == "" {
+			return fmt.Errorf("MD5Sum of %v is incorrect.", baseURL)
 		}
 	} else {
 		baseURL := strings.TrimSuffix(model.GetModel().GetBaseUrl(), "/")
@@ -128,15 +131,16 @@ func downloadFile(path string) error {
 				return fmt.Errorf("MD5Sum of %v is incorrect.", baseURL+model.GetModel().GetWeightsPath())
 			}
 		}
-		if model.GetModel().GetFeaturesPath() != "" {
-			featuresPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetFeaturesPath()))
-			str, ok, err := downloadmanager.DownloadFile(baseURL+model.GetModel().GetFeaturesPath(), featuresPath, downloadmanager.MD5Sum(model.GetModel().GetFeaturesChecksum()))
-			if err != nil {
-				return fmt.Errorf("failed to download features from %v", baseURL+model.GetModel().GetFeaturesPath())
-			}
-			if !ok && str == "" {
-				return fmt.Errorf("MD5Sum of %v is incorrect.", baseURL+model.GetModel().GetFeaturesPath())
-			}
+	}
+
+	if model.GetModel().GetFeaturesPath() != "" {
+		featuresPath := filepath.Join(workDir, filepath.Base(model.GetModel().GetFeaturesPath()))
+		str, ok, err := downloadmanager.DownloadFile(model.GetModel().GetFeaturesPath(), featuresPath, downloadmanager.MD5Sum(model.GetModel().GetFeaturesChecksum()))
+		if err != nil {
+			return fmt.Errorf("failed to download features from %v", model.GetModel().GetFeaturesPath())
+		}
+		if !ok && str == "" {
+			return fmt.Errorf("MD5Sum of %v is incorrect.", model.GetModel().GetFeaturesPath())
 		}
 	}
 
