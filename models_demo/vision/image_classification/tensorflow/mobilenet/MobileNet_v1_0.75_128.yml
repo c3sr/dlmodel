@@ -1,14 +1,17 @@
-name: ResNet_50_v1.5
+name: MobileNet_v1_0.75_128
 framework:
   name: TensorFlow
   version: 1.14.0
 version: 1.0
 description: >
-  MLPerf_ResNet50_v1.5.
+  MobileNet is a general architecture and can be used for multiple use cases.
+  Depending on the use case, it can use different input layer size and different width factors.
+  This allows different width models to reduce the number of multiply-adds and thereby reduce inference cost on mobile devices.
 references:
-  - https://arxiv.org/pdf/1512.03385.pdf
-  - https://github.com/mlperf/inference/tree/master/v0.5/classification_and_detection
-  - https://github.com/mlperf/training/tree/master/image_classification
+  - https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.md
+  - http://download.tensorflow.org/models/mobilenet_v1_2018_08_02/mobilenet_v1_0.75_128.tgz
+  - https://arxiv.org/pdf/1704.04861.pdf
+  - https://github.com/keras-team/keras-applications/blob/master/keras_applications/mobilenet.py
 license: Apache License, Version 2.0
 modality: image_classification
 inputs:
@@ -16,24 +19,26 @@ inputs:
     description: the input image
     parameters:
       element_type: float32
-      input_layer: 'input_tensor'
+      input_layer: input
       layout: HWC
       color_mode: RGB
-      dimensions: [3, 224, 224]
-      mean: [123.68, 116.78, 103.94]
+      dimensions: [3, 128, 128]
+      mean: [128, 128, 128]
+      scale: 128
 outputs:
   - type: classification
     description: the probability
     parameters:
       element_type: float32
-      output_layer: 'softmax_tensor'
+      output_layer: MobilenetV1/Predictions/Reshape_1
 model:
+  base_url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/mobilenet_v1_2018_08_02/mobilenet_v1_0.75_128.tgz
+  graph_checksum: 5df18437e7c2c993df43b1a01e28fdf6
   is_archive:
-    false
-  graph_path: https://zenodo.org/record/2535873/files/resnet50_v1.pb
-  graph_checksum: 7b94a2da05dd30f6c0af23a46bc08886
-  features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
-  features_checksum: 4d234b5833aca44928065a180db3016a
+    true
+  graph_path: mobilenet_v1_0.75_128_frozen.pb
+  features_path: https://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset1.txt
+  features_checksum: 6c05083991207dea5c37f2d271014fad
 preprocess: |
   import numpy as np
   import cv2
@@ -57,24 +62,26 @@ preprocess: |
       w = int(new_width * width / height)
     img = cv2.resize(img, (w, h), interpolation=inter_pol)
     return img
-  def pre_process_vgg(img, dims=None, need_transpose=False):
+  def preprocess_image(img, dims=None, need_transpose=False):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     output_height, output_width, _ = dims
     cv2_interpol = cv2.INTER_AREA
     img = resize_with_aspectratio(img, output_height, output_width, inter_pol=cv2_interpol)
     img = center_crop(img, output_height, output_width)
     img = np.asarray(img, dtype='float32')
-    means = np.array([123.68, 116.78, 103.94])
+    means = np.array([128, 128, 128])
     img -= means
+    scale = 128
+    img /= scale
     if need_transpose:
       img = img.transpose([2, 0, 1])
     return img
   def preprocess(ctx, data):
     img = cv2.imread(dataset[int(data)])
-    return pre_process_vgg(img, [224, 224, 3], False)
+    return preprocess_image(img, [128, 128, 3], False)
 postprocess: |
   def postprocess(ctx, data):
-    return data[0][:, 1:].tolist()
+    return data[0].tolist()
 attributes:
   kind: CNN
   training_dataset: ImageNet

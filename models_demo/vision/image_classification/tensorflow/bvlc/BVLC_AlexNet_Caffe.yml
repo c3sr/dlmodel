@@ -1,37 +1,47 @@
-name: ResNet_50_v1.5
+name: BVLC_AlexNet_Caffe
 framework:
-  name: Onnxruntime
-  version: 1.7.1
+  name: TensorFlow
+  version: 1.14.0
 version: 1.0
 description: >
-  MLPerf_ResNet50_v1.5.
+  This model is a replication of the model described in the AlexNet publication.
+  Differences: not training with the relighting data-augmentation;
+  initializing non-zero biases to 0.1 instead of 1 (found necessary for training, as initialization to 1 gave flat loss).
+  The bundled model is the iteration 360,000 snapshot. The best validation
+  performance during training was iteration 358,000 with validation accuracy
+  57.258% and loss 1.83948. This model obtains a top-1 accuracy 57.1% and a
+  top-5 accuracy 80.2% on the validation set, using just the center crop.
+  (Using the average of 10 crops, (4 + 1 center) * 2 mirror, should obtain
+  a bit higher accuracy.)
+  This model was trained by Evan Shelhamer @shelhamer
 references:
-  - https://arxiv.org/pdf/1512.03385.pdf
-  - https://github.com/mlperf/inference/tree/master/v0.5/classification_and_detection
-  - https://github.com/mlperf/training/tree/master/image_classification
-license: Apache License, Version 2.0
+  - https://github.com/BVLC/Caffe/tree/master/models/bvlc_alexnet
+  - https://github.com/BVLC/Caffe/wiki/Models-accuracy-on-ImageNet-2012-val
+  - http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
+license: unrestricted
 modality: image_classification
 inputs:
   - type: image
     description: the input image
     parameters:
       element_type: float32
-      input_layer: 0
-      layout: CHW
-      color_mode: RGB
+      input_layer: data
+      layout: HWC
+      color_mode: BGR
       dimensions: [3, 224, 224]
-      mean: [123.68, 116.78, 103.94]
+      mean: [104, 117, 123]
 outputs:
   - type: classification
     description: the probability
     parameters:
       element_type: float32
+      output_layer: prob
 model:
   is_archive:
     false
-  graph_path: https://s3.amazonaws.com/store.carml.org/models/onnxruntime/resnet50_v1.onnx
-  graph_checksum: a638cf028b5870da29e09ccc2f7182e7
-  features_path: http://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/bvlc_alexnet_1.0/frozen_model.pb
+  graph_checksum: 6d23f40191c1dcac71285f41a85abd8e
+  features_path: https://s3.amazonaws.com/store.carml.org/synsets/imagenet/synset.txt
   features_checksum: 4d234b5833aca44928065a180db3016a
 preprocess: |
   import numpy as np
@@ -56,25 +66,24 @@ preprocess: |
       w = int(new_width * width / height)
     img = cv2.resize(img, (w, h), interpolation=inter_pol)
     return img
-  def pre_process_vgg(img, dims=None, need_transpose=False):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  def preprocess_image(img, dims=None, need_transpose=False):
     output_height, output_width, _ = dims
     cv2_interpol = cv2.INTER_AREA
     img = resize_with_aspectratio(img, output_height, output_width, inter_pol=cv2_interpol)
     img = center_crop(img, output_height, output_width)
     img = np.asarray(img, dtype='float32')
-    means = np.array([123.68, 116.78, 103.94])
+    means = np.array([104, 117, 123])
     img -= means
     if need_transpose:
       img = img.transpose([2, 0, 1])
     return img
   def preprocess(ctx, data):
     img = cv2.imread(dataset[int(data)])
-    return pre_process_vgg(img, [224, 224, 3], True)
+    return preprocess_image(img, [227, 227, 3], False)
 postprocess: |
   def postprocess(ctx, data):
-    return data[1][:, 1:].tolist()
+    return data[0].tolist()
 attributes:
-    kind: CNN
-    training_dataset: ImageNet
-    manifest_author: Yen-Hsiang Chang
+  kind: CNN
+  training_dataset: ImageNet
+  manifest_author: Yen-Hsiang Chang
