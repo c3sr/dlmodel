@@ -1,0 +1,71 @@
+name: DeepLabv3_MobileNet_v2_PASCAL_VOC_Train_Aug
+framework:
+  name: TensorFlow
+  version: 1.14.0
+version: 1.0
+description: >
+  TensorFlow Semantic Segmentation model, which is trained on the COCO (Common Objects in Context) dataset.
+  Use mobilenetv2_coco_voc_trainaug(deeplabv3_mnv2_pascal_train_aug_2018_01_29) from TensorFlow DeepLab Model Zoo.
+references:
+  - https://github.com/tensorflow/models/tree/master/research/deeplab
+license: Apache License, Version 2.0
+modality: image_semantic_segmentation
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: uint8
+      input_layer: ImageTensor
+      layout: HWC
+      color_mode: RGB
+outputs:
+  - type: semanticsegment
+    description: the output semantic segment 
+    parameters:
+      element_type: float32
+      output_layer: SemanticPredictions
+model:
+  is_archive:
+    false
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/deeplabv3_mnv2_pascal_train_aug_2018_01_29/frozen_inference_graph.pb
+  graph_checksum: b0a1d0340189d7003291010abbc2e475
+  features_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/deeplabv3_mnv2_pascal_train_aug_2018_01_29/pascal-voc-classes.txt
+  features_checksum: 9ce439bcfb44c304e49a0fe1ae398f69
+preprocess: |
+  import numpy as np
+  import cv2
+  wlist, hlist = [], []
+  def maybe_resize(img, dims):
+    img = np.array(img, dtype=np.float32)
+    if len(img.shape) < 3 or img.shape[2] != 3:
+      img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    wlist.append(img.shape[1])
+    hlist.append(img.shape[0])
+    if dims != None:
+      im_height, im_width, _ = dims
+      img = cv2.resize(img, (im_width, im_height), interpolation=cv2.INTER_LINEAR)
+    return img
+  def preprocess_image(img, dims=None, need_transpose=False):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = maybe_resize(img, dims)
+    img = np.asarray(img, dtype='uint8')
+    if need_transpose:
+      img = img.transpose([2, 0, 1])
+    return img
+  def preprocess(ctx, data):
+    img = cv2.imread(dataset[int(data)])
+    return preprocess_image(img, dims = [513, 513, 3])
+postprocess: |
+  def postprocess(ctx, data):
+    n = len(data[0])
+    res = []
+    for i in range(n):
+      cur = data[0][i]
+      cur = cv2.resize(cur, (wlist[-(n - i)], hlist[-(n - i)]), interpolation = cv2.INTER_NEAREST)
+      res.append(cur.tolist())
+    return res
+attributes:
+  kind: CNN
+  training_dataset: PASCAL VOC
+  manifest_author: Yen-Hsiang Chang

@@ -8,7 +8,7 @@ description: >
   Use SSD_512_MobileNet_1.0_COCO from GluonCV model zoo.
 references:
   - https://gluon-cv.mxnet.io/model_zoo/detection.html
-license: Apache License 2.0
+license: Apache License, Version 2.0
 modality: image_object_detection
 inputs:
   - type: image

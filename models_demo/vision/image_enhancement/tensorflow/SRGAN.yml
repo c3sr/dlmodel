@@ -1,0 +1,54 @@
+name: SRGAN
+framework:
+  name: TensorFlow
+  version: 1.14.0
+version: 1.0
+description: >
+  TensorFlow Image Enhancement model, which is trained on DIV2K - bicubic downscaling x4 competition.
+  Use SRGAN release 1.2.0 from TensorLayer SRGAN repo.
+references:
+  - https://github.com/tensorlayer/srgan
+  - https://github.com/tensorlayer/srgan/releases/download/1.2.0/g_srgan.npz
+license: Apache License, Version 2.0
+modality: image_enhancement
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: float32
+      input_layer: input_image
+      layout: HWC
+      color_mode: RGB
+      mean: [127.5, 127.5, 127.5]
+      scale: 127.5
+outputs:
+  - type: image
+    description: the output image
+    parameters:
+      element_type: float32
+      output_layer: SRGAN_g/out/Tanh
+model:
+  is_archive:
+    false
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/srgan_1.2/frozen_model.pb
+  graph_checksum: 4af37a6975db591bfd1c780eb8019f97
+preprocess: |
+  import numpy as np
+  import cv2
+  def preprocess_image(img, dims=None, need_transpose=False):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = np.asarray(img, dtype='float32') / 255
+    if need_transpose:
+      img = img.transpose([2, 0, 1])
+    return img
+  def preprocess(ctx, data):
+    img = cv2.imread(dataset[int(data)])
+    return preprocess_image(img)
+postprocess: |
+  import numpy as np
+  def postprocess(ctx, data):
+    return (255 * np.transpose(data[0], axes=[0, 2, 3, 1])).tolist()
+attributes:
+  kind: CNN
+  training_dataset: DIV2K - bicubic downscaling x4 competition
+  manifest_author: Yen-Hsiang Chang
