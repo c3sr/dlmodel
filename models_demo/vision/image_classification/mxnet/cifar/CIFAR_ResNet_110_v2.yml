@@ -9,7 +9,7 @@ description: >
 references:
   - https://gluon-cv.mxnet.io/model_zoo/classification.html
   - https://github.com/dmlc/gluon-cv/blob/master/scripts/classification/imagenet/verify_pretrained.py
-license: Apache License 2.0
+license: Apache License, Version 2.0
 modality: image_classification
 inputs:
   - type: image

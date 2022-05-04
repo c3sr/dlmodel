@@ -1,0 +1,78 @@
+name: AI_Matrix_DIEN
+framework:
+  name: TensorFlow
+  version: 1.14.0
+version: 1.0
+description: >
+  AI Matrix DIEN.
+references:
+  - https://github.com/alibaba/ai-matrix/tree/master/macro_benchmark/DIEN
+  - https://arxiv.org/pdf/1809.03672.pdf
+license: unrestricted
+inputs:
+  - type: raw
+    description: mid_his_ph
+    parameters:
+      input_layer: Inputs/mid_his_batch_ph
+      input_type: slice
+      element_type: int32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/mid_his_batch_ph.txt
+  - type: raw
+    description: cat_his_ph
+    parameters:
+      input_layer: Inputs/cat_his_batch_ph
+      input_type: slice
+      element_type: int32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/cat_his_batch_ph.txt
+  - type: raw
+    description: uid_batch_ph
+    parameters:
+      input_layer: Inputs/uid_batch_ph
+      input_type: scalar
+      element_type: int32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/uid_batch_ph.txt
+  - type: raw
+    description: mid_batch_ph
+    parameters:
+      input_layer: Inputs/mid_batch_ph
+      input_type: scalar
+      element_type: int32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/mid_batch_ph.txt
+  - type: raw
+
+    description: cat_batch_ph
+    parameters:
+      input_layer: Inputs/cat_batch_ph
+      input_type: scalar
+      element_type: int32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/cat_batch_ph.txt
+  - type: raw
+
+    description: mask
+    parameters:
+      input_layer: Inputs/mask
+      input_type: slice
+      element_type: float32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/mask.txt
+  - type: raw
+    description: seq_len_ph
+    parameters:
+      input_layer: Inputs/seq_len_ph
+      input_type: scalar
+      element_type: int32
+      url: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/input/seq_len_ph.txt
+output:
+  type: raw
+  description: the output
+  parameters:
+    element_type: float32
+    probabilities_layer: dien/fcn/Softmax
+model:
+  graph_path: http://s3.amazonaws.com/store.carml.org/models/tensorflow/models/ai_matrix_dien_1.0/DIEN.pb
+  graph_checksum: 7be74fc1c1eb4ace05aed4547dfd7e89
+  is_archive:
+    false
+attributes:
+  kind: CTR
+  training_dataset:
+  manifest_author: Cheng Li
