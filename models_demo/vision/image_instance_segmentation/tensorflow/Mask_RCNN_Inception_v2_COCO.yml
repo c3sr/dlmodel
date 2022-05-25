@@ -1,0 +1,80 @@
+name: Mask_RCNN_Inception_v2_COCO
+framework:
+  name: TensorFlow
+  version: 1.14.0
+version: 1.0
+description: >
+  TensorFlow Instance Segmentation model, which is trained on the COCO (Common Objects in Context) dataset.
+  Use mask_rcnn_inception_v2_coco_2018_01_28 from TensorFlow detection model zoo.
+references:
+  - https://github.com/tensorflow/models/blob/master/research/object_detection
+license: Apache License, Version 2.0
+modality: image_instance_segmentation
+inputs:
+  - type: image
+    description: the input image
+    parameters:
+      element_type: uint8
+      input_layer: image_tensor
+      layout: HWC
+      color_mode: RGB
+outputs:
+  - type: classes
+    description: classes
+    parameters:
+      element_type: float32
+      output_layer: detection_classes
+  - type: scores
+    description: scores
+    parameters:
+      element_type: float32
+      output_layer: detection_scores
+  - type: boundingboxes
+    description: boundingboxes
+    parameters:
+      element_type: float32
+      output_layer: detection_boxes
+  - type: masks
+    description: masks
+    parameters:
+      element_type: float32
+      output_layer: detection_masks
+model:
+  is_archive:
+    false
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/mask_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb
+  graph_checksum: b47e443b313a709e4c39c1caeaa3ecb3
+  features_path: https://s3.amazonaws.com/store.carml.org/synsets/coco/coco_labels_paper_background.txt
+  features_checksum: 17249a4106513972e03c00728e7cd380
+preprocess: |
+  import numpy as np
+  import cv2
+  def preprocess_image(img, dims=None, need_transpose=False):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = np.asarray(img, dtype='uint8')
+    if need_transpose:
+      img = img.transpose([2, 0, 1])
+    return img
+  def preprocess(ctx, data):
+    img = cv2.imread(dataset[int(data)])
+    return preprocess_image(img)
+postprocess: |
+  def postprocess(ctx, data):
+    probs, labels, boxes, masks = [], [], [], []
+    for i in range(len(data[0])):
+      cur_probs, cur_labels, cur_boxes, cur_masks = [], [], [], []
+      for j in range(len(data[0][i])):
+        prob, label, box, mask = data[1][i][j], data[0][i][j], data[2][i][j].tolist(), data[3][i][j].tolist()
+        cur_probs.append(prob)
+        cur_labels.append(label)
+        cur_boxes.append(box)
+        cur_masks.append(mask)
+      probs.append(cur_probs)
+      labels.append(cur_labels)
+      boxes.append(cur_boxes)
+      masks.append(cur_masks)
+    return probs, labels, boxes, masks
+attributes:
+  kind: CNN
+  training_dataset: COCO
+  manifest_author: Yen-Hsiang Chang
