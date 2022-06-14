@@ -1,15 +1,15 @@
-name: Mask_RCNN_Inception_v2_COCO
+name: Mask_RCNN_Inception_ResNet_v2_Atrous_COCO_Raw
 framework:
   name: TensorFlow
   version: 1.14.0
 version: 1.0
 description: >
   TensorFlow Instance Segmentation model, which is trained on the COCO (Common Objects in Context) dataset.
-  Use mask_rcnn_inception_v2_coco_2018_01_28 from TensorFlow detection model zoo.
+  Use mask_rcnn_inception_resnet_v2_atrous_coco_2018_01_28 from TensorFlow detection model zoo.
 references:
   - https://github.com/tensorflow/models/blob/master/research/object_detection
 license: Apache License, Version 2.0
-modality: image_instance_segmentation
+modality: image_instance_segmentation_raw
 inputs:
   - type: image
     description: the input image
@@ -42,19 +42,16 @@ outputs:
 model:
   is_archive:
     false
-  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/mask_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb
-  graph_checksum: b47e443b313a709e4c39c1caeaa3ecb3
+  graph_path: https://s3.amazonaws.com/store.carml.org/models/tensorflow/models/mask_rcnn_inception_resnet_v2_atrous_coco_2018_01_28/frozen_inference_graph.pb
+  graph_checksum: 9dd24ee8716d34789efbf6b50c8f2ee1
   features_path: https://s3.amazonaws.com/store.carml.org/synsets/coco/coco_labels_paper_background.txt
   features_checksum: 17249a4106513972e03c00728e7cd380
 preprocess: |
   import numpy as np
   import cv2
-  wlist, hlist = [], []
   def preprocess_image(img, dims=None, need_transpose=False):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = np.asarray(img, dtype='uint8')
-    wlist.append(img.shape[1])
-    hlist.append(img.shape[0])
     if need_transpose:
       img = img.transpose([2, 0, 1])
     return img
@@ -62,30 +59,21 @@ preprocess: |
     img = cv2.imread(dataset[int(data)])
     return preprocess_image(img)
 postprocess: |
-  import numpy as np
-  import cv2
   def postprocess(ctx, data):
-    masks, labels = [], [0]
-    n = len(data[0])
-    for i in range(n):
-      h, w = hlist[-(n - i)], wlist[-(n - i)]
-      cur_masks = np.zeros((h, w))
+    probs, labels, boxes, masks = [], [], [], []
+    for i in range(len(data[0])):
+      cur_probs, cur_labels, cur_boxes, cur_masks = [], [], [], []
       for j in range(len(data[0][i])):
-        prob, label, box, mask = data[1][i][j], data[0][i][j], data[2][i][j].tolist(), data[3][i][j]
-        if prob > 0.7:
-          labels.append(label)
-          ymin, xmin, ymax, xmax = int(box[0] * h), int(box[1] * w), int(box[2] * h), int(box[3] * w)
-          ymin = max(ymin, 0)
-          xmin = max(xmin, 0)
-          ymax = min(ymax, h)
-          xmax = min(xmax, w)
-          mask = cv2.resize(mask, (xmax - xmin, ymax - ymin)).tolist()
-          for y in range(ymax - ymin):
-            for x in range(xmax - xmin):
-              if mask[y][x] > 0.5 and cur_masks[y + ymin][x + xmin] == 0:
-                cur_masks[y + ymin][x + xmin] = len(labels) - 1
-      masks.append(cur_masks.tolist())
-    return masks, labels
+        prob, label, box, mask = data[1][i][j], data[0][i][j], data[2][i][j].tolist(), data[3][i][j].tolist()
+        cur_probs.append(prob)
+        cur_labels.append(label)
+        cur_boxes.append(box)
+        cur_masks.append(mask)
+      probs.append(cur_probs)
+      labels.append(cur_labels)
+      boxes.append(cur_boxes)
+      masks.append(cur_masks)
+    return probs, labels, boxes, masks
 attributes:
   kind: CNN
   training_dataset: COCO
